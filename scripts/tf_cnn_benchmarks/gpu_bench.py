@@ -50,15 +50,15 @@ def main(positional_arguments):
   params = benchmark_cnn.setup(params)
 
   tests = [
-    # {'num_gpus': 1, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'},
-    # {'num_gpus': 4, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'},
+    {'num_gpus': 1, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'},
+    {'num_gpus': 4, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'},
     {'num_gpus': 8, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'}
   ]
 
-  stats = []
-  for test in tests:
+  stats = []*len(tests)
+  for i, test in enumerate(tests):
     # params._replace(num_gpus=1, batch_size=32, model='resnet50', variable_update='cpu')
-    params._replace(num_gpus=test['num_gpus'],
+    params = params._replace(num_gpus=test['num_gpus'],
                     batch_size=test['batch_size'],
                     model=test['model'],
                     variable_update=test['variable_update'])
