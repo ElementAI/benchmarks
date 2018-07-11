@@ -30,11 +30,11 @@ import flags
 from cnn_util import log_fn
 import pprint
 
-
 flags.define_flags()
 for name in flags.param_specs.keys():
   absl_flags.declare_key_flag(name)
 
+DGX_SERVER = False
 
 def main(positional_arguments):
   # Command-line arguments like '--distortions False' are equivalent to
@@ -46,36 +46,47 @@ def main(positional_arguments):
     raise ValueError('Received unknown positional arguments: %s'
                      % positional_arguments[1:])
 
-  params = benchmark_cnn.make_params_from_flags()
-  params = benchmark_cnn.setup(params)
-
-  tests = [
-    {'num_gpus': 1, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'},
-    {'num_gpus': 4, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'},
-    {'num_gpus': 8, 'batch_size': 32, 'model': 'resnet50', 'variable_update': 'gpu'}
+  tests_models = [
+    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'parameter_server', 'model': 'inception3'},
+    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'parameter_server', 'model': 'resnet50'},
+    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'parameter_server', 'model': 'resnet152'},
+    {'num_gpus': None, 'batch_size': 512, 'variable_update': 'replicated', 'model': 'alexnet'},
+    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'replicated', 'model': 'vgg16'}
   ]
+  test_gpus = [1, 4, 8]
 
-  stats = []*len(tests)
-  for i, test in enumerate(tests):
-    # params._replace(num_gpus=1, batch_size=32, model='resnet50', variable_update='cpu')
-    params = params._replace(num_gpus=test['num_gpus'],
-                    batch_size=test['batch_size'],
-                    model=test['model'],
-                    variable_update=test['variable_update'])
+  stats = []
+  for test in tests_models:
+    for num_gpus in test_gpus:
+      test['num_gpus'] = num_gpus
 
-    bench = benchmark_cnn.BenchmarkCNN(params)
+      params = benchmark_cnn.make_params_from_flags()
+      params = benchmark_cnn.setup(params)
 
-    tfversion = cnn_util.tensorflow_version_tuple()
-    log_fn('TensorFlow:  %i.%i' % (tfversion[0], tfversion[1]))
+      # params._replace(num_gpus=1, batch_size=32, model='resnet50', variable_update='cpu')
+      params = params._replace(num_gpus=test['num_gpus'],
+                               batch_size=test['batch_size'],
+                               model=test['model'],
+                               variable_update=test['variable_update'],
+                               hierarchical_copy=DGX_SERVER)
 
-    bench.print_info()
-    stats.append({'test': test,
-                  'result': bench.run()})
+      bench = benchmark_cnn.BenchmarkCNN(params)
 
+      tfversion = cnn_util.tensorflow_version_tuple()
+      log_fn('TensorFlow:  %i.%i' % (tfversion[0], tfversion[1]))
+
+      bench.print_info()
+      results = bench.run()
+
+      stats.append({'test': test,
+                    'result': results})
 
   # summary
   print('summary:')
   pprint.pprint(stats)
+  # todo save results into a json file
+
+
 
 
 if __name__ == '__main__':
