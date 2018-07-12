@@ -1,8 +1,7 @@
+#!/usr/bin/env python
 
-
-"""Benchmark script for TensorFlow.
-
-See the README for more information.
+"""
+Benchmark script for TensorFlow.
 """
 
 from __future__ import print_function
@@ -21,13 +20,15 @@ flags.define_flags()
 for name in flags.param_specs.keys():
   absl_flags.declare_key_flag(name)
 
-DGX_SERVER = False
 
 def main(positional_arguments):
   # Command-line arguments like '--distortions False' are equivalent to
   # '--distortions=True False', where False is a positional argument. To prevent
   # this from silently running with distortions, we do not allow positional
   # arguments.
+
+  # For DGX servers use hierarchical_copy=True argument
+
   assert len(positional_arguments) >= 1
   if len(positional_arguments) > 1:
     raise ValueError('Received unknown positional arguments: %s'
@@ -54,8 +55,8 @@ def main(positional_arguments):
       params = params._replace(num_gpus=test['num_gpus'],
                                batch_size=test['batch_size'],
                                model=test['model'],
-                               variable_update=test['variable_update'],
-                               hierarchical_copy=DGX_SERVER)
+                               variable_update=test['variable_update']
+                               )
 
       bench = benchmark_cnn.BenchmarkCNN(params)
 
@@ -75,21 +76,21 @@ def main(positional_arguments):
       stats.append({'test': test.copy(),
                     'result': results})
 
+
   # summary
   print('summary:')
   print('==========')
   pprint.pprint(stats)
-  # todo save results into a json file
 
   print('==========')
   s = ''
   for i in range(4):
     for j in range(5):
-      # print(i+j*4)
       s += str(stats[i + j * 4]['result']['images_per_sec'])
       s += ', '
     s += '\n'
   print(s)
+  print('==========')
 
 
 if __name__ == '__main__':
