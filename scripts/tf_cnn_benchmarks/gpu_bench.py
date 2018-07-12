@@ -1,17 +1,4 @@
-# Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
+
 
 """Benchmark script for TensorFlow.
 
@@ -49,11 +36,12 @@ def main(positional_arguments):
   tests_models = [
     {'num_gpus': None, 'batch_size': 64, 'variable_update': 'parameter_server', 'model': 'inception3'},
     {'num_gpus': None, 'batch_size': 64, 'variable_update': 'parameter_server', 'model': 'resnet50'},
-    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'parameter_server', 'model': 'resnet152'},
-    {'num_gpus': None, 'batch_size': 512, 'variable_update': 'replicated', 'model': 'alexnet'},
-    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'replicated', 'model': 'vgg16'}
+    {'num_gpus': None, 'batch_size': 32, 'variable_update': 'parameter_server', 'model': 'resnet152'}, #batch=64 crashes
+    {'num_gpus': None, 'batch_size': 64, 'variable_update': 'replicated', 'model': 'vgg16'},
+    {'num_gpus': None, 'batch_size': 512, 'variable_update': 'replicated', 'model': 'alexnet'}
   ]
-  test_gpus = [1, 4, 8]
+
+  test_gpus = [1, 2, 4, 8]
 
   stats = []
   for test in tests_models:
@@ -63,7 +51,6 @@ def main(positional_arguments):
       params = benchmark_cnn.make_params_from_flags()
       params = benchmark_cnn.setup(params)
 
-      # params._replace(num_gpus=1, batch_size=32, model='resnet50', variable_update='cpu')
       params = params._replace(num_gpus=test['num_gpus'],
                                batch_size=test['batch_size'],
                                model=test['model'],
@@ -77,16 +64,32 @@ def main(positional_arguments):
 
       bench.print_info()
       results = bench.run()
-
-      stats.append({'test': test,
+      # result
+      # {
+      #     'average_wall_time': 0.6646941304206848,
+      #     'images_per_sec': 385.1395525908701,
+      #     'last_average_loss': 7.256145,
+      #     'num_steps': 100,
+      #     'num_workers': 1
+      # }
+      stats.append({'test': test.copy(),
                     'result': results})
 
   # summary
   print('summary:')
+  print('==========')
   pprint.pprint(stats)
   # todo save results into a json file
 
-
+  print('==========')
+  s = ''
+  for i in range(4):
+    for j in range(5):
+      # print(i+j*4)
+      s += str(stats[i + j * 4]['result']['images_per_sec'])
+      s += ', '
+    s += '\n'
+  print(s)
 
 
 if __name__ == '__main__':
