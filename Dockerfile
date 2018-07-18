@@ -1,4 +1,5 @@
 FROM tensorflow/tensorflow:latest-gpu
+FROM tensorflow/tensorflow:1.9.0-gpu
 
 MAINTAINER Sami Ben Guedria (BGS)
 
