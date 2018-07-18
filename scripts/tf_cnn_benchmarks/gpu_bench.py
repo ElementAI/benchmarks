@@ -52,6 +52,10 @@ def main(positional_arguments):
       params = benchmark_cnn.make_params_from_flags()
       params = benchmark_cnn.setup(params)
 
+      # force --hierarchical_copy to False when using 1 GPU
+      if num_gpus == 1:
+        params = params._replace(hierarchical_copy=False)
+
       params = params._replace(num_gpus=test['num_gpus'],
                                batch_size=test['batch_size'],
                                model=test['model'],
