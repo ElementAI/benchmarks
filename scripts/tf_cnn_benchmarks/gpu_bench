@@ -1,2 +1,2 @@
 #!/bin/bash
-python gpu_bench.py --num_gpus=8
+python gpu_bench.py --num_gpus=8 $@
