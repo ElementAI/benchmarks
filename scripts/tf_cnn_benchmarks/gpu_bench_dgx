@@ -1,2 +1,2 @@
 #!/bin/bash
-python gpu_bench.py --num_gpus=8 --hierarchical_copy=True
+python gpu_bench.py --num_gpus=8 --hierarchical_copy=True $@
