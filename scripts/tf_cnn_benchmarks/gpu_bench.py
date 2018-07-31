@@ -88,9 +88,9 @@ def main(positional_arguments):
 
   print('==========')
   s = ''
-  for i in range(4):
-    for j in range(5):
-      s += str(stats[i + j * 4]['result']['images_per_sec'])
+  for i in range(len(test_gpus)):
+    for j in range(len(tests_models)):
+      s += str(stats[i + j * len(test_gpus)]['result']['images_per_sec'])
       s += ', '
     s += '\n'
   print(s)
